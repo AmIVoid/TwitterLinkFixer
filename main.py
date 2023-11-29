@@ -28,9 +28,9 @@ replacement_count = load_replacement_count()  # Load the initial count
 @tasks.loop(minutes=5)
 async def change_presence_task():
     global replacement_count
-    await bot.change_presence(activity=discord.Game(name="Replacing twitter links"))
-    await asyncio.sleep(30)  # Wait for 30 seconds
     await bot.change_presence(activity=discord.Game(name=f"{replacement_count} links replaced"))
+    await asyncio.sleep(30)  # Wait for 30 seconds
+    await bot.change_presence(activity=discord.Game(name="Replacing twitter links"))
 
 @bot.event
 async def on_ready():
@@ -62,11 +62,21 @@ async def on_message(message):
             replacement_count += 1
             save_replacement_count(replacement_count) # Save the updated count to the file
 
+            # Get the user's nickname or username
+            user_nick = message.author.nick
+            user_name = message.author.name
+
+            # Construct the new message content
+            if user_nick:
+                user_display_name = f"{user_nick} [{user_name}]"
+            else:
+                user_display_name = user_name
+
             # Delete the original message
             await message.delete()
 
             # Send a new message with the replaced content
-            await message.channel.send(f"{message.author}:\n{replaced_content}")
+            await message.channel.send(f"{user_display_name}:\n{replaced_content}")
 
     await bot.process_commands(message)
 
